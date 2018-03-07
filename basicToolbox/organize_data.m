@@ -1,0 +1,54 @@
+
+% load('data/data09032017.mat')
+
+data_timings
+
+
+
+dataTrials=struct([]);
+
+
+counter=1;
+
+for i=2:length(sess)
+    for j=1:length(sess{i}.trials)
+       
+        if sess{i}.trials{j}.use==1
+            dataTrials{counter}.glove=sess{i}.trials{j}.glove;
+            dataTrials{counter}.vision=sess{i}.trials{j}.vision;
+            dataTrials{counter}.emg=sess{i}.trials{j}.emg;
+            dataTrials{counter}.grasp=sess{i}.trials{j}.grasp;
+            dataTrials{counter}.orientation=sess{i}.trials{j}.orientation;
+            dataTrials{counter}.position=sess{i}.trials{j}.position;
+            dataTrials{counter}.relative_orientation=sess{i}.trials{j}.relative_orientation;
+            dataTrials{counter}.hand_shoulder_distance=sess{i}.trials{j}.hand_shoulder_distance;
+            dataTrials{counter}.hand_elbow_distance=sess{i}.trials{j}.hand_elbow_distance;
+            dataTrials{counter}.shoulder_elbow_distance=sess{i}.trials{j}.shoulder_elbow_distance;
+            dataTrials{counter}.elbow_angle=sess{i}.trials{j}.elbow_angle;
+            dataTrials{counter}.elbow_angular_velocity=sess{i}.trials{j}.elbow_angular_velocity;
+            dataTrials{counter}.jointAngles=sess{i}.trials{j}.jointAngles;
+            dataTrials{counter}.FTipsArea=sess{i}.trials{j}.FTipsArea;
+            dataTrials{counter}.Aperture=sess{i}.trials{j}.Aperture;
+            dataTrials{counter}.velocity_Area=sess{i}.trials{j}.velocity_Area;
+            dataTrials{counter}.velocity_Aperture=sess{i}.trials{j}.velocity_Aperture;
+            dataTrials{counter}.reaching_motion_onset=sess{i}.trials{j}.reaching_motion_onset;
+            dataTrials{counter}.reaching_motion_end=sess{i}.trials{j}.reaching_motion_end;
+            dataTrials{counter}.elbow_extension_onset=sess{i}.trials{j}.elbow_extension_onset;
+            dataTrials{counter}.elbow_extension_end=sess{i}.trials{j}.elbow_extension_end;
+            dataTrials{counter}.elbow_flexion_onset=sess{i}.trials{j}.elbow_flexion_onset;
+            dataTrials{counter}.elbow_flexion_end=sess{i}.trials{j}.elbow_flexion_end;
+            dataTrials{counter}.elbow_motion_onset=sess{i}.trials{j}.elbow_motion_onset;
+            dataTrials{counter}.elbow_motion_end=sess{i}.trials{j}.elbow_motion_end;
+            dataTrials{counter}.fingers_motion_onset=sess{i}.trials{j}.fingers_motion_onset;
+            dataTrials{counter}.fingers_motion_end=sess{i}.trials{j}.fingers_motion_end;
+            counter=counter+1;
+        end
+        
+    end    
+end
+
+% Fold=createRegressionSets_test(dataTrials);
+
+[testingSet,crossvalidationFolders]=createRegressionSets(dataTrials,'MusclesIDs',1:11,'Features',{'Average','WaveFormLength'},'DatasetOption',1);
+
+% save('data/organizedData_16042017.mat','dataTrials','testingSet','crossvalidationFolders')
