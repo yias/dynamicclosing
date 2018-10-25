@@ -268,7 +268,7 @@ demosTestSet_Indx(ri)=[];
 
 [Priors_0, Mu_0, Sigma_0] = initialize_SEDS(Data,K); %finding an initial guess for GMM's parameter
 [Priors Mu Sigma]=SEDS_Solver(Priors_0,Mu_0,Sigma_0,Data,options); %running SEDS optimization solver
-
+%%
 opt_sim.dt = 0.1;
 opt_sim.i_max = 3000;
 opt_sim.tol = 0.1;
@@ -279,6 +279,37 @@ x0_all = Data(1:d,index(1:end-1)); %finding initial points of all demonstrations
 fn_handle = @(x) GMR(Priors,Mu,Sigma,x,1:d,d+1:2*d);
 [x xd,~,~,~, sp]=Simulation(x0_all,[],fn_handle,opt_sim); %running the simulator
 sp=plotDemonstrations_Data(Data,x0_all,index,sp);
+
+%% 2D plot
+dd_toPlot=[1,3];
+ds_plot_options = [];
+ds_plot_options.sim_traj  = 1;                      % To simulate trajectories from x0_all
+ds_plot_options.x0_all    = x0_all(dd_toPlot,:);    % Intial Points
+ds_plot_options.init_type = 'ellipsoid';            % For 3D DS, to initialize streamlines
+                                                    % 'ellipsoid' or 'cube'  
+ds_plot_options.nb_points = 30;                     % No of streamlines to plot (3D)
+ds_plot_options.plot_vol  = 1;                      % Plot volume of initial points (3D)
+
+t_Sigma=zeros(2*length(dd_toPlot),2*length(dd_toPlot),K);
+t_Sigma(:,:,1)=[Sigma(dd_toPlot,dd_toPlot,1),Sigma(dd_toPlot,d+dd_toPlot,1);Sigma(d+dd_toPlot,dd_toPlot,1),Sigma(d+dd_toPlot,d+dd_toPlot,1)];
+t_Sigma(:,:,2)=[Sigma(dd_toPlot,dd_toPlot,2),Sigma(dd_toPlot,d+dd_toPlot,2);Sigma(d+dd_toPlot,dd_toPlot,2),Sigma(d+dd_toPlot,d+dd_toPlot,2)];
+t_Sigma(:,:,3)=[Sigma(dd_toPlot,dd_toPlot,3),Sigma(dd_toPlot,d+dd_toPlot,3);Sigma(d+dd_toPlot,dd_toPlot,3),Sigma(d+dd_toPlot,d+dd_toPlot,3)];
+
+fn_handle = @(x) GMR(Priors,[Mu(dd_toPlot,:);Mu(d+dd_toPlot,:)],t_Sigma,x,1:length(dd_toPlot),length(dd_toPlot)+1:2*length(dd_toPlot));
+[hd, hs, hr, x_sim] = visualizeEstimatedDS(Data(dd_toPlot,:), fn_handle, ds_plot_options);
+
+%% 3D plot
+
+ds_plot_options = [];
+ds_plot_options.sim_traj  = 1;                      % To simulate trajectories from x0_all
+ds_plot_options.x0_all    = x0_all;                 % Intial Points
+ds_plot_options.init_type = 'ellipsoid';            % For 3D DS, to initialize streamlines
+                                                    % 'ellipsoid' or 'cube'  
+ds_plot_options.nb_points = 30;                     % No of streamlines to plot (3D)
+ds_plot_options.plot_vol  = 1;                      % Plot volume of initial points (3D)
+
+fn_handle = @(x) GMR(Priors,Mu,Sigma,x,1:d,d+1:2*d);
+[hd, hs, hr, x_sim] = visualizeEstimatedDS(Data(1:d,:), fn_handle, ds_plot_options);
 %%
 
 figure('name','Gaussians, dim 1-2')
