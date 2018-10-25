@@ -1,9 +1,0 @@
-# folders
-grasps_DS/*
-linear_regression/*
-plots/*
-
-# files
-
-*.mat*
-*.fig*
