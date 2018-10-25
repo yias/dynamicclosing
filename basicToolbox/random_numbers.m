@@ -2,7 +2,7 @@
 
 function R=random_numbers(max,nb_rows,nb_columns)
 
-%        explaination:
+%        description:
 % the algorithm checks if each of the elements of matrix temp exists more
 % than once in the matrix. if yes, it changes the number with another one
 % that does not exist. 

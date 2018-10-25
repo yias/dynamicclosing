@@ -16,7 +16,7 @@ dt = 0.1; %The time step of the demonstrations
 tol_cutting = 1; % A threshold on velocity that will be used for trimming demos
 
 % Training parameters
-K = 6; %Number of Gaussian funcitons
+K = 3; %Number of Gaussian funcitons
 
 % A set of options that will be passed to the solver. Please type 
 % 'doc preprocess_demos' in the MATLAB command window to get detailed
@@ -30,7 +30,7 @@ options.display = 1;          % An option to control whether the algorithm
 options.tol_stopping=10^-10;  % A small positive scalar defining the stoppping
                               % tolerance for the optimization solver [default: 10^-10]
 
-options.max_iter = 500;       % Maximum number of iteration for the solver [default: i_max=1000]
+options.max_iter = 5000;       % Maximum number of iteration for the solver [default: i_max=1000]
 
 options.objective = 'mse';    % 'likelihood': use likelihood as criterion to
                               % optimize parameters of GMM
@@ -50,8 +50,13 @@ if isempty(regexp(path,['GMR_lib' pathsep], 'once'))
 end
 
 %% SEDS learning algorithm
-[x0 , xT, Data, index] = preprocess_demos(demos,dt,tol_cutting); %preprocessing datas
+[x0 , xT, Data, indeX_] = preprocess_demos(demos,dt,tol_cutting); %preprocessing datas
 [Priors_0, Mu_0, Sigma_0] = initialize_SEDS(Data,K); %finding an initial guess for GMM's parameter
+figure('name','prior Gaussians')
+hold on
+plotGMM(Mu_0(1:2,:), Sigma_0(1:2,1:2,:), [0.6 1.0 0.6], 1,[0.6 1.0 0.6]);
+plot(Data(1,:),Data(2,:),'r.')
+%%
 [Priors Mu Sigma]=SEDS_Solver(Priors_0,Mu_0,Sigma_0,Data,options); %running SEDS optimization solver
 
 %% Simulation
@@ -62,33 +67,34 @@ end
 opt_sim.dt = 0.1;
 opt_sim.i_max = 3000;
 opt_sim.tol = 0.1;
-d = size(Data,1)/2; %dimension of data
-x0_all = Data(1:d,index(1:end-1)); %finding initial points of all demonstrations
+d = size(Data,1)/2;  %dimension of data
+x0_all = Data(1:d,indeX_(1:length(indeX_)-1)); %finding initial points of all demonstrations
 fn_handle = @(x) GMR(Priors,Mu,Sigma,x,1:d,d+1:2*d);
-[x xd]=Simulation(x0_all,[],fn_handle,opt_sim); %running the simulator
+[x xd,~,~,~, sp]=Simulation(x0_all,[],fn_handle,opt_sim); %running the simulator
+% sp=plotDemonstrations_Data(Data,x0_all,index,sp);
 %%
 % plotting the result
 figure('name','Results from Simulation','position',[265   200   520   720])
-sp(1)=subplot(3,1,1);
+sp_1(1)=subplot(3,1,1);
 hold on; box on
-% plotGMM(Mu(1:2,:), Sigma(1:2,1:2,:), [0.6 1.0 0.6], 1,[0.6 1.0 0.6]);
+plotGMM(Mu(1:2,:), Sigma(1:2,1:2,:), [0.6 1.0 0.6], 1,[0.6 1.0 0.6]);
 plot(Data(1,:),Data(2,:),'r.')
 xlabel('$\xi_1 (mm)$','interpreter','latex','fontsize',15);
 ylabel('$\xi_2 (mm)$','interpreter','latex','fontsize',15);
 title('Simulation Results')
 
 %%
-sp(2)=subplot(3,1,2);
+sp_1(2)=subplot(3,1,2);
 hold on; box on
-% plotGMM(Mu([1 3],:), Sigma([1 3],[1 3],:), [0.6 1.0 0.6], 1,[0.6 1.0 0.6]);
-plot(Data_1(1,:),Data_1(3,:),'r.')
+plotGMM(Mu([1 3],:), Sigma([1 3],[1 3],:), [0.6 1.0 0.6], 1,[0.6 1.0 0.6]);
+plot(Data(1,:),Data(3,:),'r.')
 xlabel('$\xi_1 (mm)$','interpreter','latex','fontsize',15);
 ylabel('$\dot{\xi}_1 (mm/s)$','interpreter','latex','fontsize',15);
-
-sp(3)=subplot(3,1,3);
+%%
+sp_1(3)=subplot(3,1,3);
 hold on; box on
 % plotGMM(Mu([2 4],:), Sigma([2 4],[2 4],:), [0.6 1.0 0.6], 1,[0.6 1.0 0.6]);
-plot(Data_1(2,:),Data_1(4,:),'r.')
+plot(Data(2,:),Data(4,:),'r.')
 xlabel('$\xi_2 (mm)$','interpreter','latex','fontsize',15);
 ylabel('$\dot{\xi}_2 (mm/s)$','interpreter','latex','fontsize',15);
 

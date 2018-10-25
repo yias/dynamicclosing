@@ -72,29 +72,50 @@ lateral_tmp=struct([]);
 load('data/organizedData_16042017.mat')
 
 pcaSet=[];
-
+ 
 for tr=1:length(dataTrials)
     
     switch dataTrials{tr}.grasp
         case 1
+            
            powerGrasp_tmp{length(powerGrasp_tmp)+1}=dataTrials{tr}.jointAngles(dataTrials{tr}.reaching_motion_onset:dataTrials{tr}.reaching_motion_end,:);
            powerGrasp{length(powerGrasp)+1}=dataTrials{tr}.jointAngles(dataTrials{tr}.reaching_motion_onset:dataTrials{tr}.reaching_motion_end,JA_keep)';
+%            size(powerGrasp{end},1)
+%            disp(length(powerGrasp))
+           for i=1:size(powerGrasp{end},1)
+               
+                powerGrasp{end}(i,:)=smooth(powerGrasp{end}(i,:),12,'lowess');
+           end
            pcaSet=[pcaSet,powerGrasp{end}];
         case 2
            tripod_tmp{length(tripod_tmp)+1}=dataTrials{tr}.jointAngles(dataTrials{tr}.reaching_motion_onset:dataTrials{tr}.reaching_motion_end,:);
            tripod{length(tripod)+1}=dataTrials{tr}.jointAngles(dataTrials{tr}.reaching_motion_onset:dataTrials{tr}.reaching_motion_end,JA_keep)';
+%            disp(length(tripod))
+%            size(tripod{end},1)
+           for i=1:size(tripod{end},1)
+                tripod{end}(i,:)=smooth(tripod{end}(i,:),12,'lowess');
+           end
            pcaSet=[pcaSet,tripod{end}];
         case 3
            t2f_tmp{length(t2f_tmp)+1}=dataTrials{tr}.jointAngles(dataTrials{tr}.reaching_motion_onset:dataTrials{tr}.reaching_motion_end,:);
            t2f{length(t2f)+1}=dataTrials{tr}.jointAngles(dataTrials{tr}.reaching_motion_onset:dataTrials{tr}.reaching_motion_end,JA_keep)';
+           for i=1:size(t2f{end},1)
+                t2f{end}(i,:)=smooth(t2f{end}(i,:),12,'lowess');
+           end
            pcaSet=[pcaSet,t2f{end}];
         case 4
            t4f_tmp{length(t4f_tmp)+1}=dataTrials{tr}.jointAngles(dataTrials{tr}.reaching_motion_onset:dataTrials{tr}.reaching_motion_end,:); 
            t4f{length(t4f)+1}=dataTrials{tr}.jointAngles(dataTrials{tr}.reaching_motion_onset:dataTrials{tr}.reaching_motion_end,JA_keep)'; 
+           for i=1:size(t4f{end},1)
+                t4f{end}(i,:)=smooth(t4f{end}(i,:),12,'lowess');
+           end
            pcaSet=[pcaSet,t4f{end}];
         case 5
            lateral_tmp{length(lateral_tmp)+1}=dataTrials{tr}.jointAngles(dataTrials{tr}.reaching_motion_onset:dataTrials{tr}.reaching_motion_end,:);
            lateral{length(lateral)+1}=dataTrials{tr}.jointAngles(dataTrials{tr}.reaching_motion_onset:dataTrials{tr}.reaching_motion_end,JA_keep)';
+           for i=1:size(lateral{end},1)
+                lateral{end}(i,:)=smooth(lateral{end}(i,:),12,'lowess');
+           end
            pcaSet=[pcaSet,lateral{end}];
         otherwise
            disp(['trial' num2str(tr) ': grasp type not defined'])
@@ -102,6 +123,8 @@ for tr=1:length(dataTrials)
             
 end
 
+
+%%
 [coeff,score,latent] = pca(pcaSet');
 % 
 % [coeff,score,latent] = mypca2(pcaSet');
@@ -222,25 +245,30 @@ options.display = 1;
                               
 options.tol_stopping=10^-10;  
 
-options.max_iter = 800;       
+options.max_iter = 1000;       
 
 options.objective = 'mse';  
 
-K = 2; %Number of Gaussian funcitons
+K = 3; %Number of Gaussian funcitons
 
 
 %% power grasp
 
-pwrData=projection2pc(powerGrasp(5:12),coeff,globalMeans,nbComp);
+pwrData=projection2pc(powerGraspAllegro(5:12),coeff,globalMeans,nbComp);
 
+demosSet_Indx=[1:18,20,23,23];
+ri=random_numbers(length(demosSet_Indx),1,12);
+demosTrainSet_Indx=demosSet_Indx(ri);
+demosTestSet_Indx=demosSet_Indx;
+demosTestSet_Indx(ri)=[];
+
+% [x0 , xT, Data, index] = preprocess_demos(powerGraspAllegro,dt,0.000001);
 [x0 , xT, Data, index] = preprocess_demos(pwrData,dt,0.000001);
 
 
 [Priors_0, Mu_0, Sigma_0] = initialize_SEDS(Data,K); %finding an initial guess for GMM's parameter
 [Priors Mu Sigma]=SEDS_Solver(Priors_0,Mu_0,Sigma_0,Data,options); %running SEDS optimization solver
 
-
-
 opt_sim.dt = 0.1;
 opt_sim.i_max = 3000;
 opt_sim.tol = 0.1;
@@ -248,68 +276,107 @@ opt_sim.tol = 0.1;
 d = size(Data,1)/2; %dimension of data
 x0_all = Data(1:d,index(1:end-1)); %finding initial points of all demonstrations
 
-
 fn_handle = @(x) GMR(Priors,Mu,Sigma,x,1:d,d+1:2*d);
-[x xd]=Simulation(x0_all,[],fn_handle,opt_sim); %running the simulator
+[x xd,~,~,~, sp]=Simulation(x0_all,[],fn_handle,opt_sim); %running the simulator
+sp=plotDemonstrations_Data(Data,x0_all,index,sp);
+%%
+
+figure('name','Gaussians, dim 1-2')
+hold on
+plotGMM(Mu(1:2,:), Sigma(1:2,1:2,:), [1.0 0.0 0.6], 2);
+hold on
+plot(Data(1,:),Data(2,:),'k--')
+xlabel('$\xi_1 (mm)$','interpreter','latex','fontsize',15);
+ylabel('$\xi_2 (mm)$','interpreter','latex','fontsize',15);
+title('Simulation Results')
+figure('name','Gaussians, dim 2-3')
+hold on
+plotGMM(Mu(2:3,:), Sigma(2:3,2:3,:), [1.0 0.0 0.6], 2);
+plot(Data(2,:),Data(3,:),'k--')
+xlabel('$\xi_2 (mm)$','interpreter','latex','fontsize',15);
+ylabel('$\xi_3 (mm)$','interpreter','latex','fontsize',15);
+title('Simulation Results')
+
+%%
+M = size(Data,1)/2; 
+ds_seds = @(x) GMR_SEDS(Priors,Mu,Sigma,x-repmat(att,[1 size(x,2)]),1:M,M+1:2*M);
+%%
 
 structGMM.Mu = Mu;
 structGMM.Priors = Priors;
 structGMM.Sigma = Sigma;
+%%
 
-SaveGMM(structGMM, './graspSEDSModels/', 'power');
+SaveGMM(structGMM, './graspSEDSModels/', 'powerGrasp20181011');
 
-out = export2SEDS_Cpp_lib('./graspSEDSModels/power.txt',Priors, Mu, Sigma);
+out = export2SEDS_Cpp_lib('./graspSEDSModels/powerGrasp20181011.txt',Priors, Mu, Sigma);
 
 %% t2f
 
-t2fData=projection2pc(t2fAllegro(5:12),coeff,globalMeans,nbComp);
+options.tol_stopping=10^-10;  
 
-[x0 , xT, Data, index] = preprocess_demos(t2fData,dt,0.000001);
+options.max_iter = 500;       
+
+options.objective = 'mse';  
+
+K = 4; %Number of Gaussian funcitons
+
+% t2fData=projection2pc(t2fAllegro(5:12),coeff,globalMeans,nbComp);
+
+[x0 , xT, Data, index] = preprocess_demos(tripodAllegro,dt,0.000001);
 
 [Priors_0, Mu_0, Sigma_0] = initialize_SEDS(Data,K); %finding an initial guess for GMM's parameter
 [Priors Mu Sigma]=SEDS_Solver(Priors_0,Mu_0,Sigma_0,Data,options); %running SEDS optimization solver
+
+
 opt_sim.dt = 0.1;
 opt_sim.i_max = 3000;
 opt_sim.tol = 0.1;
-opt_sim.figure=10;
+
 d = size(Data,1)/2; %dimension of data
 x0_all = Data(1:d,index(1:end-1)); %finding initial points of all demonstrations
 fn_handle = @(x) GMR(Priors,Mu,Sigma,x,1:d,d+1:2*d);
-[x xd]=Simulation(x0_all,[],fn_handle,opt_sim); %running the simulator
+% [x xd]=Simulation(x0_all,[],fn_handle,opt_sim); %running the simulator
+
+[x xd,~,~,~, sp]=Simulation(x0_all,[],fn_handle,opt_sim); %running the simulator
+sp=plotDemonstrations_Data(Data,x0_all,index,sp)
 
 structGMM.Mu = Mu;
 structGMM.Priors = Priors;
 structGMM.Sigma = Sigma;
 
-SaveGMM(structGMM, './graspSEDSModels/', 't2f');
+SaveGMM(structGMM, './graspSEDSModels/', 't2f220181011');
 
-out = export2SEDS_Cpp_lib('./graspSEDSModels/t2f.txt',Priors, Mu, Sigma);
+out = export2SEDS_Cpp_lib('./graspSEDSModels/t2f20181011.txt',Priors, Mu, Sigma);
 
 %% lateral
 
-lateralData=projection2pc(lateralAllegro(5:12),coeff,globalMeans,nbComp);
+% lateralData=projection2pc(lateralAllegro(5:12),coeff,globalMeans,nbComp);
 
-[x0 , xT, Data, index] = preprocess_demos(lateralData,dt,0.000001);
+[x0 , xT, Data, index] = preprocess_demos(lateralAllegro,dt,0.000001);
 
 [Priors_0, Mu_0, Sigma_0] = initialize_SEDS(Data,K); %finding an initial guess for GMM's parameter
 [Priors Mu Sigma]=SEDS_Solver(Priors_0,Mu_0,Sigma_0,Data,options); %running SEDS optimization solver
+
+%%
 opt_sim.dt = 0.1;
 opt_sim.i_max = 3000;
 opt_sim.tol = 0.1;
-opt_sim.figure=10;
+
 d = size(Data,1)/2; %dimension of data
 x0_all = Data(1:d,index(1:end-1)); %finding initial points of all demonstrations
 fn_handle = @(x) GMR(Priors,Mu,Sigma,x,1:d,d+1:2*d);
-[x xd]=Simulation(x0_all,[],fn_handle,opt_sim); %running the simulator
+[x xd,~,~,~, sp]=Simulation(x0_all,[],fn_handle,opt_sim); %running the simulator
+sp=plotDemonstrations_Data(Data,x0_all,index,sp);
 
-
+%%
 structGMM.Mu = Mu;
 structGMM.Priors = Priors;
 structGMM.Sigma = Sigma;
 
-SaveGMM(structGMM, './graspSEDSModels/', 'lateral');
+SaveGMM(structGMM, './graspSEDSModels/', 'latera20181011l');
 
-out = export2SEDS_Cpp_lib('./graspSEDSModels/lateral.txt',Priors, Mu, Sigma);
+out = export2SEDS_Cpp_lib('./graspSEDSModels/lateral20181011.txt',Priors, Mu, Sigma);
 
 %%
 

@@ -30,7 +30,7 @@ if display_mode==1
     stdev = sqrtm(3.0.*Sigma(:,:,j));
     X = [cos(t) sin(t)] * real(stdev) + repmat(Mu(:,j)',nbDrawingSeg,1);
     if ~isempty(lightcolor)
-        patch(X(:,1), X(:,2), lightcolor, 'line', 'none'); %linewidth=2
+        patch(X(:,1), X(:,2), lightcolor); %linewidth=2
     end
     hold on;    
     plot(X(:,1), X(:,2),'k')

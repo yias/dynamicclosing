@@ -1,4 +1,4 @@
-function [y, Sigma_y] = GMR(Priors, Mu, Sigma, x, in, out)
+function [y, Sigma_y, beta] = GMR(Priors, Mu, Sigma, x, in, out)
 %
 % Gaussian Mixture Regression.
 % This source code is the implementation of the algorithms described in 

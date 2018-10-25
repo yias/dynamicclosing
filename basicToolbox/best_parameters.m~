@@ -1,0 +1,34 @@
+function [vel_best_epsilon,vel_best_gamma,vel_best_C,best_performance]=best_parameters(performcances,epsilon,gamma,constraint)
+
+
+
+bestPerf=zeros(length(epsilon),1);
+
+% first column corresponds to gamma, the second columb to C
+best_gC=zeros(length(epsilon),2);
+
+for i=1:length(epsilon)
+    
+    [a,b]=max(squeeze(performcances(i,:,:)));
+    
+    [bestPerf(i),best_g]=max(a);
+    
+    best_gC(i,2)=best_g;
+    best_gC(i,1)=b(best_g);
+    
+end
+
+[best_performance,id]=max(bestPerf);
+
+
+vel_best_epsilon=epsilon(id);
+vel_best_gamma=gamma(best_gC(id,1));
+vel_best_C=constraint(best_gC(id,2));
+
+
+
+
+
+
+
+end

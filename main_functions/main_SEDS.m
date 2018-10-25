@@ -10,10 +10,13 @@ subject_name='lucia'; thumb_model='rpij'; visualization='importancebar'; setupHa
 
 precision_Ftip=struct([]);
 precision_elbow=struct([]);
+precision_Ftip_xyz=struct([]);
 t2_Ftip=struct([]);
 t2_elbow=struct([]);
+t2_Ftip_xyz=struct([]);
 lateral_Ftip=struct([]);
 lateral_elbow=([]);
+lateral_Ftip_xyz=struct([]);
 
 precision_counter=1;
 t2_counter=1;
@@ -60,6 +63,7 @@ lateral_counter=1;
                 
                 precision_Ftip{precision_counter}=[thump_tip_dis,index_tip_dis,middle_tip_dis]';
                 precision_elbow{precision_counter}=dataTrials{trl}.elbow_angle(dataTrials{trl}.reaching_motion_onset:dataTrials{trl}.reaching_motion_end)';
+                precision_Ftip_xyz{precision_counter}=[thump_tip,index_tip,middle_tip]';
                 precision_counter=precision_counter+1;
             end
             
@@ -67,8 +71,8 @@ lateral_counter=1;
                 
                 t2_Ftip{t2_counter}=[thump_tip_dis,index_tip_dis,middle_tip_dis]';
                 t2_elbow{t2_counter}=dataTrials{trl}.elbow_angle(dataTrials{trl}.reaching_motion_onset:dataTrials{trl}.reaching_motion_end)';
+                t2_Ftip_xyz{t2_counter}=[thump_tip,index_tip,middle_tip]';
                 t2_counter=t2_counter+1;
-                
                 
             end
             
@@ -76,6 +80,7 @@ lateral_counter=1;
                 
                 lateral_Ftip{lateral_counter}=[thump_tip_dis,index_tip_dis,middle_tip_dis]';
                 lateral_elbow{lateral_counter}=dataTrials{trl}.elbow_angle(dataTrials{trl}.reaching_motion_onset:dataTrials{trl}.reaching_motion_end)';
+                t2_Ftip_xyz{t2_counter}=[thump_tip,index_tip,middle_tip]';
                 lateral_counter=lateral_counter+1;
                 
             end

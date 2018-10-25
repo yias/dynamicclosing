@@ -94,7 +94,7 @@ for i=1:length(demos)
     
     % de-noising data (not necessary)
     for j=1:d
-        tmp(j,:) = smooth(demos{i}(j,:),25); 
+        tmp(j,:) = smooth(demos{i}(j,:),10); 
     end
     
     % computing the first time derivative

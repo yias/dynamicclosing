@@ -1,4 +1,4 @@
-function plotGMM(Mu, Sigma, color, display_mode);
+function plotGMM(Mu, Sigma, color, display_mode)
 %
 % This function plots a representation of the components (means and 
 % covariance amtrices) of a Gaussian Mixture Model (GMM) or a
