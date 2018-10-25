@@ -1,9 +1,11 @@
 # folders
 data/
+results/
 
 # files
 
 *.mat
+*.fig
 data/CouplingData.mat
 data/organizedData_16042017.mat
 data/data09032017.mat
