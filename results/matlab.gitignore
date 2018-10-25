@@ -1,12 +1,9 @@
 # folders
-data/
-results/
+grasps_DS/*
+linear_regression/*
+plots/*
 
 # files
 
 *.mat*
 *.fig*
-data/CouplingData.mat
-data/organizedData_16042017.mat
-data/data09032017.mat
-data/tmpmat.mat
