@@ -1,7 +1,7 @@
 function plotGMM(Mu, Sigma, color, display_mode)
 %
 % This function plots a representation of the components (means and 
-% covariance amtrices) of a Gaussian Mixture Model (GMM) or a
+% covariance matrices) of a Gaussian Mixture Model (GMM) or a
 % Gaussian Mixture Regression (GMR).
 %
 % Author:	Sylvain Calinon, 2009
@@ -27,7 +27,8 @@ if display_mode==1
     stdev = sqrtm(3.0.*Sigma(:,:,j));
     X = [cos(t) sin(t)] * real(stdev) + repmat(Mu(:,j)',nbDrawingSeg,1);
     patch(X(:,1), X(:,2), lightcolor, 'lineWidth', 1.5, 'EdgeColor', 'r','FaceColor','g');
-    plot(Mu(1,:), Mu(2,:), 'x', 'lineWidth', 2, 'color', color);
+    plot(X(:,1), X(:,2),'r','lineWidth',5)
+    plot(Mu(1,:), Mu(2,:), 'x', 'lineWidth', 10, 'color', color);
   end
 elseif display_mode==2
   nbDrawingSeg = 40;

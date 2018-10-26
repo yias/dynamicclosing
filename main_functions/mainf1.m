@@ -249,10 +249,11 @@ options.max_iter = 1000;
 
 options.objective = 'mse';  
 
-K = 3; %Number of Gaussian funcitons
 
 
 %% power grasp
+
+K = 3; %Number of Gaussian funcitons
 
 pwrData=projection2pc(powerGraspAllegro(5:12),coeff,globalMeans,nbComp);
 
@@ -264,11 +265,38 @@ demosTestSet_Indx(ri)=[];
 
 % [x0 , xT, Data, index] = preprocess_demos(powerGraspAllegro,dt,0.000001);
 [x0 , xT, Data, index] = preprocess_demos(pwrData,dt,0.000001);
-
-
 [Priors_0, Mu_0, Sigma_0] = initialize_SEDS(Data,K); %finding an initial guess for GMM's parameter
+
+%% plot the initial fitting
+figure('name','prior Gaussians, dim 1-2')
+hold on
+plotGMM(Mu_0(1:2,:), Sigma_0(1:2,1:2,:), [1.0 0.0 0.6], 1);
+hold on
+plot(Data(1,:),Data(2,:),'k--')
+xlabel('$\xi_1 (mm)$','interpreter','latex','fontsize',15);
+ylabel('$\xi_2 (mm)$','interpreter','latex','fontsize',15);
+title('prior fitting')
+figure('name','Gaussians, dim 2-3')
+hold on
+plotGMM(Mu_0(2:3,:), Sigma_0(2:3,2:3,:), [1.0 0.0 0.6], 1);
+plot(Data(2,:),Data(3,:),'k--')
+xlabel('$\xi_2 (mm)$','interpreter','latex','fontsize',15);
+ylabel('$\xi_3 (mm)$','interpreter','latex','fontsize',15);
+title('prior fitting')
+
+%% 3D plotting the initial fitting
+
+figure('name','prior Gaussians, dim 1-2')
+hold on
+plot_3D_GMM(Mu_0(1:3,:),Sigma_0(1:3,1:3,:),1)
+hold on
+plot3(Data(1,:),Data(2,:),Data(3,:),'k','LineStyle','-','LineWidth',3)
+grid on
+%% train SEDS
+
+
 [Priors Mu Sigma]=SEDS_Solver(Priors_0,Mu_0,Sigma_0,Data,options); %running SEDS optimization solver
-%%
+%% Simulation of the model
 opt_sim.dt = 0.1;
 opt_sim.i_max = 3000;
 opt_sim.tol = 0.1;
@@ -327,6 +355,17 @@ plot(Data(2,:),Data(3,:),'k--')
 xlabel('$\xi_2 (mm)$','interpreter','latex','fontsize',15);
 ylabel('$\xi_3 (mm)$','interpreter','latex','fontsize',15);
 title('Simulation Results')
+
+%% 3D plotting the final fitting after SEDS
+
+figure('name','SEDS Gaussians 3D')
+hold on
+plot_3D_GMM(Mu(1:3,:),Sigma(1:3,1:3,:),1)
+hold on
+plot3(Data(1,:),Data(2,:),Data(3,:),'k','LineStyle','-','LineWidth',3)
+grid on
+
+
 
 %%
 M = size(Data,1)/2; 

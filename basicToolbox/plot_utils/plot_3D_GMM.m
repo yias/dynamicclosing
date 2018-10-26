@@ -1,0 +1,92 @@
+function plot_3D_GMM(Mu, Sigma, display_mode)
+%
+% This function plots a representation of the components (means and 
+% covariance matrices) of a Gaussian Mixture Model (GMM) or a
+% Gaussian Mixture Regression (GMR).
+%
+% Author:	Iason Batzianoulis, 2018
+%			
+%
+% Inputs -----------------------------------------------------------------
+%   o Mu:           D x K array representing the centers of the K GMM components.
+%   o Sigma:        D x D x K array representing the covariance matrices of the 
+%                   K GMM components.
+%   
+%   o display_mode: Display mode (1 is used for a GMM, 2 is used for a GMR
+%                   with a 2D representation and 3 is used for a GMR with a
+%                   1D representation).
+
+nbData = size(Mu,2);
+% lightcolor = color + [0,238/255,136/255];
+lightcolor = [0,238/255,136/255];
+lightcolor(find(lightcolor>1.0)) = 1.0;
+clrMap=hsv(nbData);
+% clrMap=clrMap(randi(3*nbData,nbData,1),:)+[0,238/255,136/255];
+
+% if display_mode==1
+%   nbDrawingSeg = 40;
+%   t = linspace(-pi, pi, nbDrawingSeg)';
+  for j=1:nbData
+      stdev = sqrtm(3.0.*Sigma(:,:,j));
+      
+      [x_t,y_t,z_t]=ellipsoid(Mu(1,j),Mu(2,j),Mu(3,j),stdev(1,1),stdev(2,2),stdev(3,3),50);
+      x1=linspace(Mu(1,j)-4*Sigma(1,1,j),Mu(1,j)+4*Sigma(1,1,j),51);
+      x2=linspace(Mu(2,j)-4*Sigma(2,2,j),Mu(2,j)+4*Sigma(2,2,j),51);
+      x3=linspace(Mu(3,j)-4*Sigma(3,3,j),Mu(3,j)+4*Sigma(3,3,j),51);
+%       [X,Y,Z]=meshgrid(x1,x2,x3);
+%       tt1=reshape(X,size(X,1)*size(X,2)*size(X,3),1);
+%       tt2=reshape(Y,size(Y,1)*size(Y,2)*size(Y,3),1);
+%       tt3=reshape(Z,size(Z,1)*size(Z,2)*size(Z,3),1);
+%       Dta=[tt1';tt2';tt3'];
+      Dta=[x1;x2;x3];
+%       fx=exp(-(1/2)*(Dta-repmat(Mu(:,j),1,size(Dta,2)))'*inv(Sigma(:,:,j))*(Dta-repmat(Mu(:,j),1,size(Dta,2))))/sqrt(((2*pi)^size(Mu,1))*det(Sigma(:,:,1)));
+      relativeDensity=exp(-(1/2)*(Dta-repmat(Mu(:,j),1,size(Dta,2)))'*inv(Sigma(:,:,j))*(Dta-repmat(Mu(:,j),1,size(Dta,2))));
+      revDensity=diag(relativeDensity);
+%       hsvColor=rgb2hsv(clrMap(j,:));
+%       Saturation_hsvColor=repmat(hsvColor,length(revDensity),1);
+%       Saturation_hsvColor(:,2)=revDensity;
+%       RBG_color=hsv2rgb(Saturation_hsvColor);
+%       reRBG=reshape(RBG_color,size(X,1),size(X,2),size(X,3),3);
+%       CO=squeeze(reRBG(1,:,:,:));
+      CO=ones(size(x_t,1),size(x_t,2),3);
+%       CO(:,:,1)=clrMap(j,1)*(1/sqrt(2*pi*Sigma(1,1,j)^2))*exp(-((x_t-Mu(1,j))^2)/(2*Sigma(1,1,j)^2));
+%       CO(:,:,2)=clrMap(j,2)*(1/sqrt(2*pi*Sigma(2,2,j)^2))*exp(-((y_t-Mu(2,j))^2)/(2*Sigma(2,2,j)^2));
+%       CO(:,:,3)=clrMap(j,3)*(1/sqrt(2*pi*Sigma(3,3,j)^2))*exp(-((z_t-Mu(3,j))^2)/(2*Sigma(3,3,j)^2));
+%       CO=ones(size(X,1),size(X,2),3);      
+      CO(:,:,1)=clrMap(j,1);%*relativeDensity;
+      CO(:,:,2)=clrMap(j,2);%*relativeDensity;
+      CO(:,:,3)=clrMap(j,3);%*relativeDensity;
+      surf(x_t, y_t, z_t,CO,'FaceColor','flat','FaceAlpha',0.6,'FaceLighting','none','LineStyle','none')
+%       surf(X, Y, Z, CO, 'FaceColor','flat','FaceAlpha',0.6,'FaceLighting','none','LineStyle','none')
+%       axis equal
+      hold on
+      xlabel('$\xi_1$','interpreter','latex','fontsize',15)
+      ylabel('$\xi_2$','interpreter','latex','fontsize',15)
+      zlabel('$\xi_3$','interpreter','latex','fontsize',15)
+      
+      
+%       X = [cos(t) sin(t)] * real(stdev) + repmat(Mu(:,j)',nbDrawingSeg,1);
+      
+%     patch(X(:,1), X(:,2), lightcolor, 'lineWidth', 1.5, 'EdgeColor', 'r','FaceColor','g');
+%     plot(X(:,1), X(:,2),'r','lineWidth',5)
+%     plot(Mu(1,:), Mu(2,:), 'x', 'lineWidth', 10, 'color', color);
+
+  end
+% elseif display_mode==2
+%   nbDrawingSeg = 40;
+%   t = linspace(-pi, pi, nbDrawingSeg)';
+%   for j=1:nbData
+%     stdev = sqrtm(3.0.*Sigma(:,:,j));
+%     X = [cos(t) sin(t)] * real(stdev) + repmat(Mu(:,j)',nbDrawingSeg,1);
+%     patch(X(:,1), X(:,2), lightcolor, 'LineStyle', 'none');
+%   end
+%   plot(Mu(1,:), Mu(2,:), '-', 'lineWidth', 3, 'color', color);
+% elseif display_mode==3
+%   for j=1:nbData
+%     ymax(j) = Mu(2,j) + sqrtm(3.*Sigma(1,1,j));
+%     ymin(j) = Mu(2,j) - sqrtm(3.*Sigma(1,1,j));
+%   end
+%   patch([Mu(1,1:end) Mu(1,end:-1:1)], [ymax(1:end) ymin(end:-1:1)], lightcolor, 'LineStyle', 'none','FaceColor','g');
+%   plot(Mu(1,:), Mu(2,:), '-', 'lineWidth', 3, 'color', 'r'); 
+%   plot(Mu(1,:),ymax,'--.r')  %//this line to plot the largest value,Miao
+end
